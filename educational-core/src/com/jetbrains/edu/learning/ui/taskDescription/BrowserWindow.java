@@ -3,11 +3,13 @@ package com.jetbrains.edu.learning.ui.taskDescription;
 import com.intellij.ide.BrowserUtil;
 import com.intellij.ide.ui.LafManager;
 import com.intellij.ide.ui.laf.darcula.DarculaLookAndFeelInfo;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.io.StreamUtil;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.util.ui.JBUI;
 import com.jetbrains.edu.learning.EduLanguageDecorator;
 import com.jetbrains.edu.learning.EduUtils;
 import com.jetbrains.edu.learning.StudyTaskManager;
@@ -23,6 +25,7 @@ import javafx.scene.Scene;
 import javafx.scene.layout.StackPane;
 import javafx.scene.web.WebEngine;
 import javafx.scene.web.WebView;
+import netscape.javascript.JSException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.TestOnly;
@@ -33,6 +36,8 @@ import org.w3c.dom.events.Event;
 import org.w3c.dom.events.EventListener;
 import org.w3c.dom.events.EventTarget;
 
+import javax.swing.*;
+import java.awt.*;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -61,7 +66,8 @@ public class BrowserWindow {
   public BrowserWindow(@NotNull final Project project, final boolean linkInNewWindow) {
     myProject = project;
     myLinkInNewBrowser = linkInNewWindow;
-    setPanel(new JFXPanel());initComponents();
+    setPanel(new JFXPanel());
+    initComponents();
   }
 
   void updateLaf(boolean isDarcula) {
@@ -148,6 +154,35 @@ public class BrowserWindow {
 
     Platform.runLater(() -> myEngine.loadContent(doProcessContent(content, taskDir, myProject)));
   }
+
+  public void loadContentAndAdjustHeight(@NotNull final String content, @NotNull JComponent componentToAdjust) {
+    ApplicationManager.getApplication().invokeLater(() -> componentToAdjust.setVisible(false));
+    Platform.runLater(() -> myWebComponent.getEngine().getLoadWorker().stateProperty().addListener((arg0, oldState, newState) -> {
+      if (newState == Worker.State.SUCCEEDED) {
+        adjustHeight(componentToAdjust);
+      }
+    }));
+    loadContent(content);
+  }
+  private void adjustHeight(@NotNull JComponent componentToAdjust) {
+    try {
+      Object result = myEngine
+        .executeScript("$(\"html\").outerHeight(true)");
+      if (result instanceof Integer) {
+        Integer height = (Integer)result;
+        ApplicationManager.getApplication().invokeLater(() -> {
+          componentToAdjust.setPreferredSize(new Dimension(componentToAdjust.getPreferredSize().width, JBUI.scale((height + 80))));
+          componentToAdjust.revalidate();
+          componentToAdjust.repaint();
+          componentToAdjust.setVisible(true);
+        });
+      }
+    }
+    catch (JSException e) {
+      LOG.warn(e.getMessage());
+    }
+  }
+
 
   @TestOnly
   public static String processContent(@NotNull String content, @NotNull VirtualFile taskDir, Project project) {
