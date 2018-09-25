@@ -164,6 +164,7 @@ public class BrowserWindow {
     }));
     loadContent(content);
   }
+
   private void adjustHeight(@NotNull JComponent componentToAdjust) {
     try {
       Object result = myEngine
@@ -182,7 +183,6 @@ public class BrowserWindow {
       LOG.warn(e.getMessage());
     }
   }
-
 
   @TestOnly
   public static String processContent(@NotNull String content, @NotNull VirtualFile taskDir, Project project) {
