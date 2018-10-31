@@ -1,11 +1,17 @@
 package com.jetbrains.edu.learning.ui.taskDescription.check
 
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.ActionToolbar
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.DefaultActionGroup
+import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.keymap.Keymap
+import com.intellij.openapi.keymap.KeymapManagerListener
+import com.intellij.openapi.keymap.KeymapUtil
 import com.intellij.openapi.project.Project
 import com.intellij.ui.components.panels.HorizontalLayout
+import com.intellij.util.messages.MessageBusConnection
 import com.intellij.util.ui.AsyncProcessIcon
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
@@ -18,14 +24,17 @@ import com.jetbrains.edu.learning.courseFormat.CheckStatus
 import com.jetbrains.edu.learning.courseFormat.tasks.Task
 import com.jetbrains.edu.learning.ui.taskDescription.TaskDescriptionView
 import java.awt.BorderLayout
+import javax.swing.JButton
 import javax.swing.JComponent
 import javax.swing.JPanel
 
-class CheckPanel(val project: Project): JPanel(BorderLayout()) {
+class CheckPanel(val project: Project): JPanel(BorderLayout()), Disposable {
+
   private val checkFinishedPanel: JPanel = JPanel(BorderLayout())
   private val checkActionsPanel: JPanel = JPanel(BorderLayout())
   private val checkDetailsPlaceholder: JPanel = JPanel(BorderLayout())
   private val checkButtonWrapper = JPanel(BorderLayout())
+  private var myBusConnection: MessageBusConnection = ApplicationManager.getApplication().messageBus.connect(this)
 
   init {
     checkActionsPanel.add(checkButtonWrapper, BorderLayout.WEST)
@@ -105,10 +114,39 @@ class CheckPanel(val project: Project): JPanel(BorderLayout()) {
 
   fun updateCheckButton(task: Task) {
     checkButtonWrapper.removeAll()
-    checkButtonWrapper.add(createButtonToolbar(CheckAction.createCheckAction(task)), BorderLayout.WEST)
+    val action = CheckAction.createCheckAction(task)
+    val buttonToolbar = createButtonToolbar(action)
+    val checkShortcut = KeymapUtil.getFirstKeyboardShortcutText(CheckAction.ACTION_ID)
+    addToolTips(buttonToolbar, action, checkShortcut)
+    checkButtonWrapper.add(buttonToolbar, BorderLayout.WEST)
+    checkButtonWrapper.toolTipText = CheckAction.SHORTCUT
+
+    myBusConnection.subscribe(KeymapManagerListener.TOPIC, object: KeymapManagerListener {
+      override fun shortcutChanged(keymap: Keymap, actionId: String) {
+        if (actionId == CheckAction.ACTION_ID) {
+          val shortcut = keymap.getShortcuts(actionId).firstOrNull()
+          val shortcutText = if (shortcut != null) KeymapUtil.getShortcutText(shortcut) else ""
+          addToolTips(buttonToolbar, action, shortcutText)
+        }
+      }
+    })
+  }
+
+  private fun addToolTips(buttonToolbar: JComponent,
+                          checkAction: CheckAction,
+                          shortcutText: String) {
+    val tooltipText = "${checkAction.templatePresentation.description} ($shortcutText)"
+    val actionButtons = UIUtil.uiTraverser(buttonToolbar).preOrderDfsTraversal().filter(JButton::class.java)
+    for (actionButton in actionButtons) {
+      actionButton.toolTipText = tooltipText
+    }
   }
 
   companion object {
     const val ACTION_PLACE = "CheckPanel"
+  }
+
+  override fun dispose() {
+    myBusConnection.disconnect()
   }
 }
