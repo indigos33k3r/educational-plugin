@@ -5,6 +5,7 @@ import com.intellij.ide.projectView.ProjectView;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.actionSystem.KeyboardShortcut;
 import com.intellij.openapi.actionSystem.Shortcut;
+import com.intellij.openapi.actionSystem.impl.ActionToolbarImpl;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.ProjectComponent;
 import com.intellij.openapi.diagnostic.Logger;
@@ -260,6 +261,9 @@ public class EduProjectComponent implements ProjectComponent {
     addShortcut(PrevPlaceholderAction.ACTION_ID, new String[]{PrevPlaceholderAction.SHORTCUT});
     addShortcut(NextTaskAction.ACTION_ID, new String[]{NextTaskAction.SHORTCUT});
     addShortcut(PreviousTaskAction.ACTION_ID, new String[]{PreviousTaskAction.SHORTCUT});
+
+    // update all actions tooltips with new shortcuts
+    ActionToolbarImpl.updateAllToolbarsImmediately();
   }
 
   private void addShortcut(@NotNull final String actionIdString, @NotNull final String[] shortcuts) {
