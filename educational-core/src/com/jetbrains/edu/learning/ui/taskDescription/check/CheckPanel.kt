@@ -42,6 +42,16 @@ class CheckPanel(val project: Project): JPanel(BorderLayout()), Disposable {
     checkActionsPanel.add(createRightActionsToolbar(), BorderLayout.EAST)
     add(checkActionsPanel, BorderLayout.CENTER)
     add(checkDetailsPlaceholder, BorderLayout.SOUTH)
+
+    myBusConnection.subscribe(KeymapManagerListener.TOPIC, object: KeymapManagerListener {
+      override fun shortcutChanged(keymap: Keymap, actionId: String) {
+        if (actionId == CheckAction.ACTION_ID) {
+          val shortcut = keymap.getShortcuts(actionId).firstOrNull()
+          val shortcutText = if (shortcut != null) KeymapUtil.getShortcutText(shortcut) else ""
+          addToolTips(checkButtonWrapper, shortcutText)
+        }
+      }
+    })
   }
 
   private fun createRightActionsToolbar(): JPanel {
@@ -117,25 +127,14 @@ class CheckPanel(val project: Project): JPanel(BorderLayout()), Disposable {
     val action = CheckAction.createCheckAction(task)
     val buttonToolbar = createButtonToolbar(action)
     val checkShortcut = KeymapUtil.getFirstKeyboardShortcutText(CheckAction.ACTION_ID)
-    addToolTips(buttonToolbar, action, checkShortcut)
+    addToolTips(buttonToolbar, checkShortcut)
     checkButtonWrapper.add(buttonToolbar, BorderLayout.WEST)
     checkButtonWrapper.toolTipText = CheckAction.SHORTCUT
-
-    myBusConnection.subscribe(KeymapManagerListener.TOPIC, object: KeymapManagerListener {
-      override fun shortcutChanged(keymap: Keymap, actionId: String) {
-        if (actionId == CheckAction.ACTION_ID) {
-          val shortcut = keymap.getShortcuts(actionId).firstOrNull()
-          val shortcutText = if (shortcut != null) KeymapUtil.getShortcutText(shortcut) else ""
-          addToolTips(buttonToolbar, action, shortcutText)
-        }
-      }
-    })
   }
 
-  private fun addToolTips(buttonToolbar: JComponent,
-                          checkAction: CheckAction,
-                          shortcutText: String) {
-    val tooltipText = "${checkAction.templatePresentation.description} ($shortcutText)"
+  private fun addToolTips(buttonToolbar: JComponent, shortcutText: String) {
+    val action = ActionManager.getInstance().getAction(CheckAction.ACTION_ID)
+    val tooltipText = "${action.templatePresentation.description} ($shortcutText)"
     val actionButtons = UIUtil.uiTraverser(buttonToolbar).preOrderDfsTraversal().filter(JButton::class.java)
     for (actionButton in actionButtons) {
       actionButton.toolTipText = tooltipText
