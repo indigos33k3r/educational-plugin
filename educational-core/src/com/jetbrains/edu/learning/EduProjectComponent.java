@@ -14,6 +14,7 @@ import com.intellij.openapi.editor.colors.EditorColorsManager;
 import com.intellij.openapi.editor.colors.EditorColorsScheme;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.keymap.Keymap;
+import com.intellij.openapi.keymap.KeymapManagerListener;
 import com.intellij.openapi.keymap.ex.KeymapManagerEx;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
@@ -46,6 +47,7 @@ import com.jetbrains.edu.learning.statistics.EduUsagesCollector;
 import com.jetbrains.edu.learning.stepik.*;
 import com.jetbrains.edu.learning.ui.taskDescription.TaskDescriptionView;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.io.File;
@@ -114,6 +116,12 @@ public class EduProjectComponent implements ProjectComponent {
 
         ApplicationManager.getApplication().invokeLater(() -> ApplicationManager.getApplication().runWriteAction(() -> {
           registerShortcuts();
+          myBusConnection.subscribe(KeymapManagerListener.TOPIC, new KeymapManagerListener() {
+            @Override
+            public void activeKeymapChanged(@Nullable Keymap keymap) {
+              registerShortcuts();
+            }
+          });
           EduUsagesCollector.projectTypeOpened(course.getCourseMode());
         }));
       }
@@ -268,21 +276,20 @@ public class EduProjectComponent implements ProjectComponent {
 
   private void addShortcut(@NotNull final String actionIdString, @NotNull final String[] shortcuts) {
     KeymapManagerEx keymapManager = KeymapManagerEx.getInstanceEx();
-    for (Keymap keymap : keymapManager.getAllKeymaps()) {
-      List<Pair<String, String>> pairs = myDeletedShortcuts.get(keymap);
-      if (pairs == null) {
-        pairs = new ArrayList<>();
-        myDeletedShortcuts.put(keymap, pairs);
+    Keymap keymap = keymapManager.getActiveKeymap();
+    List<Pair<String, String>> pairs = myDeletedShortcuts.get(keymap);
+    if (pairs == null) {
+      pairs = new ArrayList<>();
+      myDeletedShortcuts.put(keymap, pairs);
+    }
+    for (String shortcutString : shortcuts) {
+      Shortcut studyActionShortcut = new KeyboardShortcut(KeyStroke.getKeyStroke(shortcutString), null);
+      String[] actionsIds = keymap.getActionIds(studyActionShortcut);
+      for (String actionId : actionsIds) {
+        pairs.add(Pair.create(actionId, shortcutString));
+        keymap.removeShortcut(actionId, studyActionShortcut);
       }
-      for (String shortcutString : shortcuts) {
-        Shortcut studyActionShortcut = new KeyboardShortcut(KeyStroke.getKeyStroke(shortcutString), null);
-        String[] actionsIds = keymap.getActionIds(studyActionShortcut);
-        for (String actionId : actionsIds) {
-          pairs.add(Pair.create(actionId, shortcutString));
-          keymap.removeShortcut(actionId, studyActionShortcut);
-        }
-        keymap.addShortcut(actionIdString, studyActionShortcut);
-      }
+      keymap.addShortcut(actionIdString, studyActionShortcut);
     }
   }
 
