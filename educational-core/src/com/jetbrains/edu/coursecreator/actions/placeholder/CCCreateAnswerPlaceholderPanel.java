@@ -1,6 +1,7 @@
 package com.jetbrains.edu.coursecreator.actions.placeholder;
 
 import com.intellij.ui.JBColor;
+import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.Nullable;
 
@@ -15,6 +16,7 @@ public class CCCreateAnswerPlaceholderPanel {
   private JTextArea myPlaceholderTextArea;
 
   public CCCreateAnswerPlaceholderPanel(@Nullable String placeholderText) {
+    myPanel.setPreferredSize(new Dimension(JBUI.scale(400), JBUI.scale(50)));
     myPlaceholderTextArea.setBorder(BorderFactory.createLineBorder(JBColor.border()));
     myPlaceholderTextArea.setText(placeholderText);
     myPlaceholderTextArea.addFocusListener(new FocusAdapter() {
