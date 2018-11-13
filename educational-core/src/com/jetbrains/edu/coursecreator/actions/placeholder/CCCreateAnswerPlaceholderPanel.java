@@ -26,8 +26,6 @@ public class CCCreateAnswerPlaceholderPanel {
         myPlaceholderTextArea.selectAll();
       }
     });
-    myPlaceholderTextArea.setFocusTraversalKeys(KeyboardFocusManager.FORWARD_TRAVERSAL_KEYS, null);
-    myPlaceholderTextArea.setFocusTraversalKeys(KeyboardFocusManager.BACKWARD_TRAVERSAL_KEYS, null);
     myPlaceholderTextArea.setFont(UIUtil.getLabelFont());
     myLabel.setBorder(JBUI.Borders.emptyTop(5));
   }
