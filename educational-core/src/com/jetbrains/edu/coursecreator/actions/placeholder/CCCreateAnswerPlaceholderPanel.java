@@ -17,7 +17,7 @@ public class CCCreateAnswerPlaceholderPanel {
   private JLabel myLabel;
 
   public CCCreateAnswerPlaceholderPanel(@Nullable String placeholderText) {
-    myPanel.setPreferredSize(new Dimension(JBUI.scale(400), JBUI.scale(50)));
+    myPanel.setPreferredSize(new Dimension(JBUI.scale(400), JBUI.scale(70)));
     myPlaceholderTextArea.setBorder(BorderFactory.createLineBorder(JBColor.border()));
     myPlaceholderTextArea.setText(placeholderText);
     myPlaceholderTextArea.addFocusListener(new FocusAdapter() {
