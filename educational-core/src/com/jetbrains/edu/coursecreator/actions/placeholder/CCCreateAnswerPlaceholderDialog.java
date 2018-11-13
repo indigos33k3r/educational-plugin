@@ -25,6 +25,7 @@ public class CCCreateAnswerPlaceholderDialog extends DialogWrapper {
     myProject = project;
     myPanel = new CCCreateAnswerPlaceholderPanel(placeholderText);
     setTitle(TITLE);
+    setOKButtonText("Add");
     init();
     initValidation();
   }
