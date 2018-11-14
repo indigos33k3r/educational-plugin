@@ -32,6 +32,7 @@ abstract class TaskYamlMixin {
     throw NotImplementedInMixin()
   }
 
+  @JsonSerialize(converter = FeedbackLinkConverter::class)
   @JsonProperty(value = "feedback_link", access = JsonProperty.Access.READ_WRITE) lateinit var myFeedbackLink: FeedbackLink
 }
 
@@ -42,3 +43,14 @@ private class TaskFileConverter : StdConverter<TaskFile, TaskFileWithoutPlacehol
 }
 
 private class TaskFileWithoutPlaceholders(@JsonProperty("name") val name: String)
+
+private class FeedbackLinkConverter: StdConverter<FeedbackLink, FeedbackLink>() {
+  override fun convert(value: FeedbackLink?): FeedbackLink? {
+    if (value?.link.isNullOrBlank()) {
+      return null
+    }
+
+    return value
+  }
+
+}
