@@ -28,14 +28,19 @@ import javax.swing.SwingConstants
 class EduSingleFileEditor(
   project: Project,
   file: VirtualFile,
-  override val taskFile: TaskFile
+  override var taskFile: TaskFile
 ) : PsiAwareTextEditorImpl(project, file, TextEditorProvider.getInstance()), EduEditor {
 
-  private val documentListener: EduDocumentListener = EduDocumentListener(project, taskFile)
+  private var documentListener: EduDocumentListener = EduDocumentListener(project, taskFile)
 
   init {
-    editor.document.addDocumentListener(documentListener)
+    setDocumentListener(documentListener)
     validateTaskFile()
+  }
+
+  fun setDocumentListener(listener: EduDocumentListener) {
+    documentListener = listener
+    editor.document.addDocumentListener(documentListener)
   }
 
   override fun getState(level: FileEditorStateLevel): EduEditorState {

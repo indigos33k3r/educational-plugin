@@ -41,7 +41,7 @@ import com.jetbrains.edu.learning.courseFormat.tasks.EduTask
 import com.jetbrains.edu.learning.courseFormat.tasks.OutputTask
 import com.jetbrains.edu.learning.courseFormat.tasks.Task
 import com.jetbrains.edu.learning.courseFormat.tasks.TheoryTask
-import com.jetbrains.edu.learning.editor.EduEditor
+import com.jetbrains.edu.learning.editor.EduSingleFileEditor
 import java.io.IOException
 
 
@@ -212,10 +212,10 @@ object YamlFormatSynchronizer {
   private fun addSynchronizationListener(project: Project, file: VirtualFile) {
     val document = file.getDocument()
     document?.addDocumentListener(object : DocumentListener {
-      override fun documentChanged(event: DocumentEvent?) {
+      override fun documentChanged(event: DocumentEvent) {
         val loadFromConfig = file.getUserData(LOAD_FROM_CONFIG) ?: true
         if (loadFromConfig) {
-          loadFromConfig(project, file, event!!.document)
+          loadFromConfig(project, file, event.document)
         }
       }
     }, project)
@@ -298,10 +298,9 @@ object YamlFormatSynchronizer {
       if (VfsUtil.isAncestor(taskDir, file, true)) {
         val taskFile = EduUtils.getTaskFile(project, file) ?: continue
         val selectedEditor = FileEditorManager.getInstance(project).getSelectedEditor(file)
-        if (selectedEditor is EduEditor) {
+        if (selectedEditor is EduSingleFileEditor) {
           selectedEditor.taskFile = taskFile
-          EduEditor.removeListener(selectedEditor.editor.document)
-          EduEditor.addDocumentListener(selectedEditor.editor.document, EduDocumentListener(project, taskFile))
+          selectedEditor.setDocumentListener(EduDocumentListener(project, taskFile))
           EduUtils.drawAllAnswerPlaceholders(selectedEditor.editor, taskFile)
         }
       }
