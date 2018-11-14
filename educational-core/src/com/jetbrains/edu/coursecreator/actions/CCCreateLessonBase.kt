@@ -36,6 +36,7 @@ abstract class CCCreateLessonBase<Item : Lesson>(itemType: StudyItemType, icon: 
     }
     val lessonDir = configurator.courseBuilder.createLessonContent(project, item, parentDirectory)
     YamlFormatSynchronizer.saveItem(item)
+    YamlFormatSynchronizer.saveItem(item.parent)
     return lessonDir
   }
 

@@ -40,6 +40,7 @@ class CCCreateTask : CCCreateStudyItemActionBase<Task>(StudyItemType.TASK, Educa
     }
     val taskDir = configurator.courseBuilder.createTaskContent(project, item, parentDirectory)
     YamlFormatSynchronizer.saveItem(item)
+    YamlFormatSynchronizer.saveItem(item.parent)
     return taskDir
   }
 
