@@ -26,21 +26,22 @@ import javax.swing.SwingConstants
  * @see [EduFileEditorProvider]
  */
 class EduSingleFileEditor(
-  project: Project,
+  val project: Project,
   file: VirtualFile,
-  override var taskFile: TaskFile
+  taskFile: TaskFile
 ) : PsiAwareTextEditorImpl(project, file, TextEditorProvider.getInstance()), EduEditor {
 
-  private var documentListener: EduDocumentListener = EduDocumentListener(project, taskFile)
+  private var documentListener: EduDocumentListener? = null
 
   init {
-    setDocumentListener(documentListener)
     validateTaskFile()
   }
 
-  fun setDocumentListener(listener: EduDocumentListener) {
-    documentListener = listener
-    editor.document.addDocumentListener(documentListener)
+  override var taskFile: TaskFile = taskFile
+  set(value) {
+    documentListener?.let { editor.document.removeDocumentListener(documentListener!!) }
+    documentListener = EduDocumentListener(project, value)
+    editor.document.addDocumentListener(documentListener!!)
   }
 
   override fun getState(level: FileEditorStateLevel): EduEditorState {
@@ -88,7 +89,7 @@ class EduSingleFileEditor(
   }
 
   override fun dispose() {
-    editor.document.removeDocumentListener(documentListener)
+    documentListener?.let { editor.document.removeDocumentListener(documentListener!!) }
     super.dispose()
   }
 

@@ -31,9 +31,9 @@ import com.jetbrains.edu.coursecreator.configuration.YamlFormatSettings.LESSON_C
 import com.jetbrains.edu.coursecreator.configuration.YamlFormatSettings.SECTION_CONFIG
 import com.jetbrains.edu.coursecreator.configuration.YamlFormatSettings.TASK_CONFIG
 import com.jetbrains.edu.coursecreator.configuration.mixins.*
-import com.jetbrains.edu.learning.EduDocumentListener
 import com.jetbrains.edu.learning.EduNames
 import com.jetbrains.edu.learning.EduUtils
+import com.jetbrains.edu.learning.NewPlaceholderPainter
 import com.jetbrains.edu.learning.StudyTaskManager
 import com.jetbrains.edu.learning.courseFormat.*
 import com.jetbrains.edu.learning.courseFormat.ext.project
@@ -41,7 +41,7 @@ import com.jetbrains.edu.learning.courseFormat.tasks.EduTask
 import com.jetbrains.edu.learning.courseFormat.tasks.OutputTask
 import com.jetbrains.edu.learning.courseFormat.tasks.Task
 import com.jetbrains.edu.learning.courseFormat.tasks.TheoryTask
-import com.jetbrains.edu.learning.editor.EduSingleFileEditor
+import com.jetbrains.edu.learning.editor.EduEditor
 import java.io.IOException
 
 
@@ -298,9 +298,8 @@ object YamlFormatSynchronizer {
       if (VfsUtil.isAncestor(taskDir, file, true)) {
         val taskFile = EduUtils.getTaskFile(project, file) ?: continue
         val selectedEditor = FileEditorManager.getInstance(project).getSelectedEditor(file)
-        if (selectedEditor is EduSingleFileEditor) {
+        if (selectedEditor is EduEditor) {
           selectedEditor.taskFile = taskFile
-          selectedEditor.setDocumentListener(EduDocumentListener(project, taskFile))
           val placeholders = selectedEditor.taskFile.answerPlaceholders
           for (placeholder in placeholders) {
             NewPlaceholderPainter.removePainter(selectedEditor.editor, placeholder)
