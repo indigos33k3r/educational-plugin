@@ -301,6 +301,10 @@ object YamlFormatSynchronizer {
         if (selectedEditor is EduSingleFileEditor) {
           selectedEditor.taskFile = taskFile
           selectedEditor.setDocumentListener(EduDocumentListener(project, taskFile))
+          val placeholders = selectedEditor.taskFile.answerPlaceholders
+          for (placeholder in placeholders) {
+            NewPlaceholderPainter.removePainter(selectedEditor.editor, placeholder)
+          }
           EduUtils.drawAllAnswerPlaceholders(selectedEditor.editor, taskFile)
         }
       }
