@@ -10,6 +10,7 @@ import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFile
 import com.jetbrains.edu.learning.EduUtils
 import com.jetbrains.edu.learning.courseFormat.Course
+import com.jetbrains.edu.learning.courseFormat.ext.configurator
 import com.jetbrains.edu.learning.newproject.LocalCourseFileChooser
 import com.jetbrains.edu.learning.newproject.ui.JoinCourseDialog
 import com.jetbrains.edu.learning.statistics.EduUsagesCollector
@@ -19,14 +20,15 @@ open class ImportLocalCourseAction(text: String = "Import Local Course") : DumbA
     FileChooser.chooseFile(LocalCourseFileChooser, null, importLocation()) { file ->
       val fileName = file.path
       val course = EduUtils.getLocalCourse(fileName)
-      if (course != null) {
-        saveLastImportLocation(file)
-        initCourse(course)
-        EduUsagesCollector.courseArchiveImported()
-        JoinCourseDialog(course).show()
-      }
-      else {
-        Messages.showErrorDialog("Selected archive doesn't contain a valid course", "Failed to Add Local Course")
+      when {
+        course == null -> showInvalidCourseDialog()
+        course.configurator == null -> showUnsupportedCourseDialog(course)
+        else -> {
+          saveLastImportLocation(file)
+          initCourse(course)
+          EduUsagesCollector.courseArchiveImported()
+          JoinCourseDialog(course).show()
+        }
       }
     }
   }
@@ -49,6 +51,16 @@ open class ImportLocalCourseAction(text: String = "Import Local Course") : DumbA
     fun saveLastImportLocation(file: VirtualFile) {
       val location = if (!file.isDirectory) file.parent ?: return else file
       PropertiesComponent.getInstance().setValue(LAST_IMPORT_LOCATION, location.path)
+    }
+
+    @JvmStatic
+    fun showInvalidCourseDialog() {
+      Messages.showErrorDialog("Selected archive doesn't contain a valid course", "Failed to Add Local Course")
+    }
+
+    @JvmStatic
+    fun showUnsupportedCourseDialog(course: Course) {
+      Messages.showErrorDialog("""Selected "${course.name}" course is unsupported""", "Failed to Add Course")
     }
   }
 }
