@@ -15,7 +15,6 @@ import com.intellij.openapi.ui.popup.ListPopup;
 import com.intellij.openapi.ui.popup.PopupStep;
 import com.intellij.openapi.ui.popup.util.BaseListPopupStep;
 import com.intellij.openapi.updateSettings.impl.pluginsAdvertisement.PluginsAdvertiser;
-import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.ui.*;
 import com.intellij.ui.awt.RelativePoint;
 import com.intellij.ui.components.JBList;
@@ -23,7 +22,11 @@ import com.intellij.util.containers.ContainerUtil;
 import com.intellij.util.messages.MessageBusConnection;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
-import com.jetbrains.edu.learning.*;
+import com.jetbrains.edu.learning.CoursesProvider;
+import com.jetbrains.edu.learning.EduNames;
+import com.jetbrains.edu.learning.EduSettings;
+import com.jetbrains.edu.learning.EduUtils;
+import com.jetbrains.edu.learning.actions.ImportLocalCourseAction;
 import com.jetbrains.edu.learning.checkio.CheckiOConnectorProvider;
 import com.jetbrains.edu.learning.checkio.connectors.CheckiOOAuthConnector;
 import com.jetbrains.edu.learning.checkio.courseFormat.CheckiOCourse;
@@ -44,8 +47,8 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
-import java.util.*;
 import java.util.List;
+import java.util.*;
 
 import static com.jetbrains.edu.learning.PluginUtils.enablePlugins;
 
@@ -401,11 +404,12 @@ public class CoursesPanel extends JPanel {
     }
 
     private void importLocalCourse() {
-      FileChooser.chooseFile(LocalCourseFileChooser.INSTANCE, null, VfsUtil.getUserHomeDir(),
+      FileChooser.chooseFile(LocalCourseFileChooser.INSTANCE, null, ImportLocalCourseAction.importLocation(),
                              file -> {
                                String fileName = file.getPath();
                                Course course = EduUtils.getLocalCourse(fileName);
                                if (course != null) {
+                                 ImportLocalCourseAction.saveLastImportLocation(file);
                                  course.setFromZip(true);
                                  EduUsagesCollector.courseArchiveImported();
                                  myCourses.add(course);
