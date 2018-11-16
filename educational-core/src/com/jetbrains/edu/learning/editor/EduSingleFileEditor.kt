@@ -31,17 +31,19 @@ class EduSingleFileEditor(
   taskFile: TaskFile
 ) : PsiAwareTextEditorImpl(project, file, TextEditorProvider.getInstance()), EduEditor {
 
-  private var documentListener: EduDocumentListener? = null
-
-  init {
-    validateTaskFile()
-  }
+  private var documentListener: EduDocumentListener = EduDocumentListener(project, taskFile)
 
   override var taskFile: TaskFile = taskFile
-  set(value) {
-    documentListener?.let { editor.document.removeDocumentListener(documentListener!!) }
-    documentListener = EduDocumentListener(project, value)
-    editor.document.addDocumentListener(documentListener!!)
+    set(value) {
+      editor.document.removeDocumentListener(documentListener)
+      documentListener = EduDocumentListener(project, value)
+      editor.document.addDocumentListener(documentListener)
+      field = value
+    }
+
+  init {
+    editor.document.addDocumentListener(documentListener)
+    validateTaskFile()
   }
 
   override fun getState(level: FileEditorStateLevel): EduEditorState {
@@ -89,7 +91,7 @@ class EduSingleFileEditor(
   }
 
   override fun dispose() {
-    documentListener?.let { editor.document.removeDocumentListener(documentListener!!) }
+    editor.document.removeDocumentListener(documentListener)
     super.dispose()
   }
 
