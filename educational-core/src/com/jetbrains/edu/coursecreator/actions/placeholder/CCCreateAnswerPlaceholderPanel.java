@@ -27,7 +27,7 @@ public class CCCreateAnswerPlaceholderPanel {
       }
     });
     myPlaceholderTextArea.setFont(UIUtil.getLabelFont());
-    myLabel.setBorder(JBUI.Borders.emptyTop(5));
+    myLabel.setForeground(JBColor.GRAY);
   }
 
   public String getAnswerPlaceholderText() {
